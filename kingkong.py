@@ -6,34 +6,38 @@ import urllib
 import json
 from hashlib import md5
 
-def add_to_16(text):
+def padding_key(text):
     while len(text) % 16 != 0:
         text += '\0'
     return (text)
 
-def decode_base64(data):
+def padding_base64(data):
     missing_padding = 4-len(data)%4
     if missing_padding:
         data += b'='*missing_padding
     return (data)
 
-
-
-def decode_req(key,password,filename):
+def decode_req(key,password,filename,isbase64):
+    if isbase64:
+        mode = "r"
+    else:
+        mode = "rb"
     with open(filename,'r') as raw_file:
         message = raw_file.read()
         message = message.replace(password,'')
         message = urllib.unquote(message)
-    key = add_to_16(key) 
+    key = padding_key(key) 
 
-    #message = '+2xGn7gPKTkXpcOFnhIdnKh9gneE517ZOPCsu6MGH+nQF2uI7biFow4xsmyvLRb5'
     encrypt_data = message
-    encrypt_data = decode_base64(encrypt_data)
+    if isbase64 == True:
+        encrypt_data = padding_base64(encrypt_data)
 
     #print(encrypt_data)
 
     cipher = AES.new(key,AES.MODE_ECB)
-    result2 = base64.b64decode(encrypt_data)
+    result2 = encrypt_data
+    if isbase64 == True:
+        result2 = base64.b64decode(encrypt_data)
     a = cipher.decrypt(result2)
 
     a = a.decode('utf-8','ignore')
@@ -59,8 +63,12 @@ def decode_req(key,password,filename):
         except Exception as e:
             pass
 
-def decode_rep(key,password,filename):
-    with open(filename,'r') as raw_file:
+def decode_rep(key,password,filename,isbase64):
+    if isbase64:
+        mode = "r"
+    else:
+        mode = "rb"
+    with open(filename,mode) as raw_file:
         message = raw_file.read()
         md5_hash = md5(password+key).hexdigest().upper()
         prefix = md5_hash[0:16]
@@ -70,12 +78,15 @@ def decode_rep(key,password,filename):
         message = message.replace(suffix,'')
         message = urllib.unquote(message)
         #print(message)
-    key = add_to_16(key)
+    key = padding_key(key)
 
     encrypt_data = message
-    encrypt_data = decode_base64(encrypt_data)
+    if isbase64 == True:
+        encrypt_data = padding_base64(encrypt_data)
     cipher = AES.new(key,AES.MODE_ECB)
-    result2 = base64.b64decode(encrypt_data)
+    result2 = encrypt_data
+    if isbase64 == True:
+        result2 = base64.b64decode(encrypt_data)
     a = cipher.decrypt(result2)
 
     a = a.decode('utf-8','ignore')
@@ -83,21 +94,27 @@ def decode_rep(key,password,filename):
     a = a.rstrip('\t')
     a = a.rstrip('\r')
     a = a.replace('\x06','')
-    print('reponse data:{}'.fo  rmat(a))
+    print('reponse data:{}'.format(a))
 
 #config
+#webshell aes key
+key = 'd8ea7326e6ec5916'
 key = '3c6e0b8a9c15224a'
+#webshell password
+password = 'pass123'
 password = 'pass'
+#where is your file?
 filepath = '.'
+#is base64 mode?
+isbase64 = False
 
 for filename in os.listdir(filepath):
     try:
-        decode_req(key = key,password = password, filename=filename)
-    except:
-        pass
+        decode_req(key = key,password = password, filename=filename, isbase64=isbase64)
+    except Exception as e:
+        print(e)
 
     try:
-        decode_rep(key = key,password = password, filename=filename)
-    except:
-        pass
-
+        decode_rep(key = key,password = password, filename=filename, isbase64=isbase64)
+    except Exception as e:
+        print(e)
