@@ -2,7 +2,7 @@
 
 解密哥斯拉Godzilla-V2.96 webshell管理工具流量
 
-**目前只支持jsp，base64+aes的payload**
+**目前只支持jsp类型的webshell流量解密**
 
 # Usage
 
@@ -18,6 +18,19 @@
 5. py -2 kingkong.py
 ![](./docs/06解密流量.png)
 
+# Config
+
+```
+#config
+#配置webshell的key
+key = '3c6e0b8a9c15224a'
+#配置webshell的password
+password = 'pass'
+#配置wireshark导出http对象的路径
+filepath = '.'
+#配置是否为jsp+base64，设置False则对JAVA_AES_RAW流量解密，设置True则对JAVA_AES_BASE64流量解密
+isbase64 = False
+```
 
 # Analysis
 
